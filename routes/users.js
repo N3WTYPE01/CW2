@@ -6,7 +6,14 @@ const user = require('../models/user')
 
 //all
 router.get('/', async (req, res) => {
-   
+   try{
+const users = await user.find()
+res.json(users);
+   }
+   catch{ (err)
+    res.status(500).json({message: err.message})
+
+   }
 })
 
 //one
@@ -15,7 +22,21 @@ res.send(req.params.id)
 })
 // create
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
+const userx = new user({
+    name: req.body.name,
+    email: req.body.email,
+    password: req.body.password
+ 
+})
+try{
+const newUser = await userx.save()
+res.status(201).json(newUser)
+}
+catch (err) {
+    res.status(400).json({message: err.message})
+
+}
 
 })
 

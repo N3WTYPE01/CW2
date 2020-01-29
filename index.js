@@ -1,8 +1,9 @@
 
-console.log("server is on!")
+console.log("server is has started!")
 require("dotenv").config()
 var express = require("express");
 var app = express();
+
 
 const mongoose = require('mongoose')
 
