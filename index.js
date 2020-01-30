@@ -1,30 +1,80 @@
-
-console.log("server is has started!")
-require("dotenv").config()
 var express = require("express");
-var app = express();
+var bodyParser = require("body-parser");
+const app = express();
+app.use(bodyParser.json());
+const path = require('path');
 
 
-const mongoose = require('mongoose')
+const db = require("./db")
 
-mongoose.connect("mongodb://localhost/users", { useNewUrlParser: true, useUnifiedTopology: true })
-const db = mongoose.connection
-
-db.on('error', (error)=> console.error(error))
-db.once('open',()=> console.log('connected to database!'))
-
-
-//middleware
-app.use(express.json())
-
-
-const userRouter = require('./routes/users')
-app.use('/users', userRouter)
+const collection = "courses";
+//html file for user
+app.get('/', (req,res)=>{
+    res.sendFile(path.join(__dirname,'index.html'))
+});
 
 
 
-var server = app.listen("3000", listening);
+// get all courses
+app.get('/getCourses',(req,res)=>{
+    db.getDB().collection(collection).find({}).toArray((err,documents)=>{
+        if(err)
+        console.log(err);
+        else{
+            console.log(documents);
+            res.json(documents);
+        }
+    })
+})
 
-function listening(){
-    console.log("listening on port 3000...")
-}
+//edit a course using ID
+app.put('/:id', (req,res)=>{
+    const courseID = req.params.id;
+    const userInput  = req.body;
+
+    db.getDB().collection(collection).findOneAndUpdate({_id : db.getPrimaryKey(courseID)}, {$set: {course : userInput.course}}, {returnOriginal: false}, (err, result)=>{
+        if(err)
+        console.log(err);
+        else{
+            res.json(result);
+        }
+    });
+});
+
+// add new course
+app.post('/',(req,res)=>{
+    const userInput = req.body;
+    db.getDB().collection(collection).insertOne(userInput,(err,result)=>{
+        if(err)
+        console.log(err);
+        else{
+            res.json({result : result, document: result.ops[0]});
+        }
+    })
+})
+
+// delete course
+app.delete('/:id',(req, res)=>{
+const courseID = req.params.id;
+db.getDB().collection(collection).findOneAndDelete({_id : db.getPrimaryKey(courseID)},(err,result)=>{
+  if (err)
+  console.log(err)
+  else{
+      res.json(result);
+  }  
+})
+})
+
+
+
+db.connect((err)=>{
+    if(err){
+        console.log("unable to access database");
+        process.exit(1);
+    }
+    else{
+        app.listen(3000,()=>{
+            console.log("connected to database listening on port 3000...")
+        });
+    }
+})
