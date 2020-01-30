@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <title>Courses</title>
+</head>
+
+<body>
+    <h1>Hello, world!</h1>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8"></div>
+            <form id="form">
+                <div class="form-group">
+                    <label for="Courses">Courses</label>
+                    <input type="text" class="form-control" id="coursesUserInput" placeholder="Courses">
+                    <button type="submit" class="btn btn-primary">Add Course</button>
+                </div>
+            </form>
+
+            <div class="col-lg-2"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+                <ul class="list-group" id="display">
+
+                </ul>
+            </div>
+            <div class="col-lg-2"></div>
+        </div>
+
+
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(() => {
+            const display = $("#display");
+            const form = $("#form");
+            const coursesUserInput = $("#coursesUserInput")
+
+            const getCourses = () => {
+                fetch('/getCourses', { method: "get" }).then((response) => {
+                    return response.json();
+                }).then((data) => {
+                    console.log(data);
+                    displayCourses(data);
+                });
+            }
+
+            getCourses();
+
+            const resetUserInput = () => {
+                coursesUserInput.val('');
+            }
+
+          const deleteCourse = (course, listCoursesID, deleteID)=>{
+              let deleteBtn = $(`#${deleteID}`);
+              deleteBtn.click(()=>{
+                  fetch(`/${course._id}`,{
+                      method: "delete"
+                  }).then((response)=>{
+                      return response.json();
+                  }).then((data)=>{
+                      if(data.ok == 1){
+                          $(`#${listCoursesID}`).remove();
+                      }
+                  })
+              })
+          }
+
+            const buildIDS = (course) => {
+                return {
+                    editID: "edit_" + course._id,
+                    deleteID: "delete_" + course._id,
+                    listCoursesID: "listCourses_" + course._id,
+                    courseID: "courses_" + course._id
+                }
+            }
+            const buildTemplate = (course, ids) => {
+                return `<li class="list-group-item" id"${ids.listCoursesID}">
+            <div class ="row">
+            <div class="col-md-4" id= "${ids.courseID}">${course.course}</div>
+            <div class="col-md-4"></div>
+            <div class="col-md-4 text-right">
+                <button type="button" class="btn btn-secondary" id="${ids.editID}">Edit</button>
+                <button type="button" class="btn btn-danger" id="${ids.deleteID}">Delete</button>
+                </div>
+            </div>
+        </li>`;
+            }
+            const displayCourses = (data) => {
+                data.forEach((course) => {
+                    let ids = buildIDS(course);
+                    display.append(buildTemplate(course,ids));
+                    //editCourse(course, ids.course, ids.editID);
+                  deleteCourse(course, ids.listCoursesID, ids.deleteID);
+                });
+            }
+             form.submit((e)=>{
+                 e.preventDefault();
+                 fetch('/',{
+                     method: 'post',
+                     body: JSON.stringify({course : coursesUserInput.val()}),
+                     headers : {
+                         "Content-Type" : "application/json; charset=utf-8"
+                     }
+
+                 }).then((response)=>{
+                     return response.json();
+                 }).then((data)=>{
+                     if(data.result.ok == 1 && data.result.n == 1){
+                         let ids = buildIDS(data.document);
+                         display.append(buildTemplate(data.document, ids));
+                        // editCourse(data.document, ids.courseID. ids.editID);
+                        deleteCourse(data.document,ids.listCoursesID,ids.deleteID)
+                     }
+                     resetUserInput();
+                 })
+             })
+        });
+    </script>
+</body>
+
+</html>
