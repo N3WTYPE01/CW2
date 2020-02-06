@@ -13,6 +13,7 @@ const db = require("./db")
 const collection = "courses";
 
 
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.resolve(__dirname, 'public')));
 
