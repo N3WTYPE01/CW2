@@ -2,8 +2,7 @@
 <html lang="en">
 
 <head>
-    
-    <!-- ok Required meta tags -->
+    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -15,7 +14,9 @@
 </head>
 
 <body>
-    <h1>Hello, world!</h1>
+    
+    <h1>Courses</h1>
+   
 
     <div class="container">
         <div class="row">
@@ -28,10 +29,10 @@
                     <button type="submit" class="btn btn-primary">Add Course</button>
                 </div>
             </form>
-
+            
             <div class="col-lg-2"></div>
         </div>
-
+        <img src="img/scroll.png" width="42" height="42">
         <div class="row">
             <div class="col-lg-2"></div>
             <div class="col-lg-8">
@@ -61,7 +62,7 @@
             const display = $("#display");
             const form = $("#form");
             const coursesUserInput = $("#coursesUserInput")
-
+          // get all courses
             const getCourses = () => {
                 fetch('/getCourses', { method: "get" }).then((response) => {
                     return response.json();
@@ -76,7 +77,30 @@
             const resetUserInput = () => {
                 coursesUserInput.val('');
             }
+           
+            //edit courses
+            const editCourse =(course, courseID, editID)=>{
+                let editBtn = $(`#${editID}`);
+                editBtn.click(()=>{
+                    fetch(`/${course._id}`,{
+                        method: "put",
+                        headers : {
+                            "Content-Type" : "application/json; charset=utf-8"
+                        },
+                        body: JSON.stringify({course : coursesUserInput.val()})
+                    }).then((response)=>{
+                        return response.json();
+                    }).then((data)=>{
+                        if(data.ok == 1){
+                            let courseIndex = $(`#${courseID}`);
+                            courseIndex.html(data.value.course);
+                            resetUserInput();
+                        }
+                    })
+                })
+            }
 
+          // delete course
           const deleteCourse = (course, listCoursesID, deleteID)=>{
               let deleteBtn = $(`#${deleteID}`);
               deleteBtn.click(()=>{
@@ -116,7 +140,7 @@
                 data.forEach((course) => {
                     let ids = buildIDS(course);
                     display.append(buildTemplate(course,ids));
-                    //editCourse(course, ids.course, ids.editID);
+                editCourse(course, ids.course, ids.editID);
                   deleteCourse(course, ids.listCoursesID, ids.deleteID);
                 });
             }
@@ -135,7 +159,7 @@
                      if(data.result.ok == 1 && data.result.n == 1){
                          let ids = buildIDS(data.document);
                          display.append(buildTemplate(data.document, ids));
-                        // editCourse(data.document, ids.courseID. ids.editID);
+                        editCourse(data.document, ids.courseID. ids.editID);
                         deleteCourse(data.document,ids.listCoursesID,ids.deleteID)
                      }
                      resetUserInput();

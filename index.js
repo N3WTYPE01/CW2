@@ -1,17 +1,34 @@
-//dependencies
 var express = require("express");
 var bodyParser = require("body-parser");
 const app = express();
 app.use(bodyParser.json());
 const path = require('path');
+var mongodb = require('mongodb');
+const mongoOptions = {useNewUrlParser : true,  useUnifiedTopology: true };
 
+var dbConn = mongodb.MongoClient.connect('mongodb://localhost:27017',mongoOptions);
 
 const db = require("./db")
 
 const collection = "courses";
+
+app.use(express.static('public'));
+
+app.post('/post-feedback', function (req, res) {
+    dbConn.then(function(db) {
+        delete req.body._id; // for safety reasons
+        db.collection('appUsers').insertOne(req.body);
+    });    
+    res.send('Data received:\n' + JSON.stringify(req.body));
+});
+
 //html file for user
-app.get('/', (req,res)=>{
+app.get('/adminCourses', (req,res)=>{
     res.sendFile(path.join(__dirname,'index.html'))
+});
+
+app.get('/register', (req,res)=>{
+    res.sendFile(path.join(__dirname,'register.html'))
 });
 
 
@@ -37,6 +54,7 @@ app.put('/:id', (req,res)=>{
         if(err)
         console.log(err);
         else{
+            console.log(result)
             res.json(result);
         }
     });
