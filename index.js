@@ -12,15 +12,38 @@ const db = require("./db")
 
 const collection = "courses";
 
-app.use(express.static('public'));
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.resolve(__dirname, 'public')));
 
 app.post('/post-feedback', function (req, res) {
-    dbConn.then(function(db) {
-        delete req.body._id; // for safety reasons
-        db.collection('appUsers').insertOne(req.body);
-    });    
-    res.send('Data received:\n' + JSON.stringify(req.body));
-});
+    const userInput = req.body;
+    db.getDB().collection("appUsers").insertOne(userInput,(err,result)=>{
+        if(err)
+        console.log(err);
+        else{
+            res.send('Data received:\n' + JSON.stringify(req.body));
+        }
+    })
+})
+
+   
+
+
+app.get('/view-feedbacks',  function(req, res) {
+    db.getDB().collection("appUsers").find({}).toArray((err,documents)=>{
+        if(err)
+        console.log(err);
+        else{
+            console.log(documents);
+            res.json(documents);
+          
+        }
+    })
+})
+
+app.use(express.static('public'));
+
 
 //html file for user
 app.get('/adminCourses', (req,res)=>{
@@ -29,6 +52,10 @@ app.get('/adminCourses', (req,res)=>{
 
 app.get('/register', (req,res)=>{
     res.sendFile(path.join(__dirname,'register.html'))
+});
+
+app.get('/userCourses', (req,res)=>{
+    res.sendFile(path.join(__dirname,'userCourses.html'))
 });
 
 
